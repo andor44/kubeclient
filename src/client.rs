@@ -91,6 +91,12 @@ impl KubeClient {
     // TODO: more deduplication?
     // problem is, macros can't generate idents, so can't generate the methods with it
 
+    // XXX: The create methods assume that the same type is returned from the API servers as the
+    // one that's sent to it. I'm not sure if that's necessarily true, but since default type
+    // parameters are being phased out (? https://github.com/rust-lang/rust/issues/36887) we can't
+    // write <Input: KubeKind, Output = Input> so that the result defaults to the input, and since
+    // the general case is the same output as input it's easier to restrict this for now.
+
     // Cluster methods
     pub fn create_cluster_object<T: KubeKind>(&self, object: &T) -> RequestResult<T> {
         self.post_object(&format!("/api/v1/{}", T::KIND_NAME), object)
