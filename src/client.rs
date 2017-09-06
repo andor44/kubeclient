@@ -2,6 +2,7 @@ use std::env;
 use pem_parser;
 use serde_json;
 use reqwest;
+use std::io::Error as IoError;
 use serde::Serialize;
 use serde_json::Error as JsonError;
 use reqwest::{Method, Certificate, Client, Result as HttpResult, Response, Error as HttpError};
@@ -9,31 +10,16 @@ use reqwest::header::{Authorization, Bearer};
 
 use utils;
 use api::KubeKind;
+use config::{ClientConfig, AuthConfig};
 
 const INCLUSTER_CA_FILE: &str = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
 const INCLUSTER_TOKEN_FILE: &str = "/var/run/secrets/kubernetes.io/serviceaccount/token";
 const INCLUSTER_API_HOST_NAME: &str = "KUBERNETES_SERVICE_HOST";
 const INCLUSTER_API_PORT_NAME: &str = "KUBERNETES_SERVICE_PORT";
 
-pub enum KubeClientConfig {
-    InCluster,
-    External {
-        api_url: String,
-        auth_info: KubeAuthConfig,
-        ca: Certificate,
-    }
-}
-
-#[derive(Clone)]
-pub enum KubeAuthConfig {
-    Token(Bearer),
-    ClientCertificate,
-    BasicAuth,
-}
-
 #[derive(Clone)]
 pub struct KubeClient {
-    auth_info: KubeAuthConfig,
+    auth_info: AuthConfig,
     api_url: String,
     client: Client,
 }
@@ -56,37 +42,46 @@ pub enum RequestError {
 
 type RequestResult<T> = Result<T, RequestError>;
 
+#[derive(Debug)]
+pub enum ClientInitError {
+    EnvVarError(String, ::std::env::VarError),
+    IoError(IoError),
+    InvalidCert(HttpError),
+    ClientBuildingError(HttpError),
+}
+
 impl KubeClient {
-    pub fn new(config: KubeClientConfig) -> Option<KubeClient> {
-        // TODO: proper error handling
-        let mut builder = Client::builder().expect("can't initialize client builder?");
+    pub fn new(config: ClientConfig) -> Result<KubeClient, ClientInitError> {
+        let mut builder = Client::builder().map_err(ClientInitError::ClientBuildingError)?;
 
         match config {
-            KubeClientConfig::InCluster => {
+            ClientConfig::InCluster => {
+                let err_mapper = |var_name| |error| ClientInitError::EnvVarError(var_name, error);
                 // TODO: convert ca.crt from PEM to DER
-                let host = env::var(INCLUSTER_API_HOST_NAME).expect("invalid k8s service host?");
-                let port = env::var(INCLUSTER_API_PORT_NAME).expect("invalid k8s service port?");
+                let host = env::var(INCLUSTER_API_HOST_NAME).map_err(err_mapper(INCLUSTER_API_HOST_NAME.to_string()))?;
+                let port = env::var(INCLUSTER_API_PORT_NAME).map_err(err_mapper(INCLUSTER_API_PORT_NAME.to_string()))?;
                 
-                let token_file_contents = &utils::read_file(INCLUSTER_TOKEN_FILE).expect("unable to read k8s token file");
+                let token_file_contents = &utils::read_file(INCLUSTER_TOKEN_FILE).map_err(ClientInitError::IoError)?;
                 let token = String::from_utf8_lossy(token_file_contents).into_owned();
 
                 let ca_file = utils::read_file(INCLUSTER_CA_FILE).expect("unable to read k8s ca file");
                 // This is guaranteed to be PEM-encoded, therefore valid UTF8
                 let ca_file = String::from_utf8(ca_file).expect("invalid PEM data in k8s CA file?");
-                let ca = Certificate::from_der(&pem_parser::pem_to_der(&ca_file));
+                let ca = Certificate::from_der(&pem_parser::pem_to_der(&ca_file))
+                                     .map_err(ClientInitError::InvalidCert)?;
 
-                KubeClient::new(KubeClientConfig::External { 
-                    auth_info: KubeAuthConfig::Token(Bearer { token }),
+                KubeClient::new(ClientConfig::External { 
+                    auth_info: AuthConfig::Token(token),
                     api_url: join_host_port(&host, &port),
-                    ca: ca.expect("k8s CA file contains no valid cert?"),
+                    ca: Some(ca),
                 })
             },
-            KubeClientConfig::External { api_url, auth_info, ca } => {
-                let client = builder.add_root_certificate(ca)
-                                    .expect("supplied CA is not valid?")
-                                    .build()
-                                    .expect("unable to build client");
-                Some(KubeClient {
+            ClientConfig::External { api_url, auth_info, ca } => {
+                if let Some(ca) = ca {
+                    builder.add_root_certificate(ca).map_err(ClientInitError::ClientBuildingError)?;
+                }
+                let client = builder.build().map_err(ClientInitError::ClientBuildingError)?;
+                Ok(KubeClient {
                     api_url, auth_info, client
                 })
             }
@@ -158,7 +153,7 @@ impl KubeClient {
     fn authorize_request(&self, request: &mut reqwest::RequestBuilder) {
         // TODO: add logic for different auth methods
         match self.auth_info {
-            KubeAuthConfig::Token(ref bearer) => request.header(Authorization(bearer.clone())),
+            AuthConfig::Token(ref bearer) => request.header(Authorization(Bearer { token: bearer.clone() })),
             _ => unimplemented!(),
         };
     }
