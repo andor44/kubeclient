@@ -35,7 +35,8 @@ fn join_host_port(host: &str, port: &str) -> String {
 
 #[derive(Debug)]
 pub enum RequestError {
-    HttpError(HttpError),
+    TransportError(HttpError),
+    HttpError(Response),
     SerdeError(JsonError),
     MiscError,
 }
@@ -176,6 +177,12 @@ impl KubeClient {
 }
 
 fn deserialize_api_response<T: KubeKind>(response: HttpResult<Response>) -> RequestResult<T> {
-    response.map_err(RequestError::HttpError)
-            .and_then(|response| serde_json::from_reader(response).map_err(RequestError::SerdeError))
+    response.map_err(RequestError::TransportError)
+            .and_then(|response| {
+                if response.status().is_success() {
+                    serde_json::from_reader(response).map_err(RequestError::SerdeError)
+                } else {
+                    Err(RequestError::HttpError(response))
+                }
+            })
 }

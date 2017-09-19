@@ -15,3 +15,6 @@ serde_derive = "1.0"
 
 # converting PEM certs to DER
 pem-parser = "0.1.1"
+
+# logging
+log = "0.3"
