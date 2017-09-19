@@ -1,6 +1,7 @@
 use reqwest::Certificate;
 use utils;
 use pem_parser;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum ClientConfig {
@@ -59,11 +60,20 @@ impl ClientConfig {
 }
 
 // TODO: custom debug that obscures auth information and only conveys type of auth
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum AuthConfig {
     Token(String),
     ClientCertificate,
     BasicAuth,
+}
+
+impl fmt::Debug for AuthConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            AuthConfig::Token(_) => write!(f, "Token authentication"),
+            _ => unimplemented!("Other auth methods are not yet implemented"),
+        }
+    }
 }
 
 impl AuthConfig {
