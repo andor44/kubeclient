@@ -79,6 +79,7 @@ impl KubeClient {
             },
             ClientConfig::External { api_url, auth_info, ca } => {
                 if let Some(ca) = ca {
+                    debug!("Adding CA cert");
                     builder.add_root_certificate(ca).map_err(ClientInitError::ClientBuildingError)?;
                 }
                 let client = builder.build().map_err(ClientInitError::ClientBuildingError)?;
