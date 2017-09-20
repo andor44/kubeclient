@@ -1,21 +1,8 @@
-use api::KubeKind;
-use std::collections::HashMap;
+use api::{KubeKind, meta};
 
 type FinalizerName = String;
 type NamespacePhase = String;
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ObjectMeta {
-    pub name: String,
-    #[serde(rename = "creationTimestamp")]
-    pub creation_timestamp: Option<String>,
-    #[serde(rename = "resourceVersion")]
-    pub resource_version: Option<String>,
-    #[serde(rename = "selfLink")]
-    pub self_link: Option<String>,
-    pub uid: Option<String>,
-    pub annotations: Option<HashMap<String, String>>,
-}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct NamespaceSpec {
@@ -29,7 +16,7 @@ pub struct NamespaceStatus {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Namespace {
-    pub metadata: ObjectMeta,
+    pub metadata: meta::ObjectMeta,
     pub spec: NamespaceSpec,
     pub status: Option<NamespaceStatus>,
 }
@@ -39,20 +26,12 @@ impl KubeKind for Namespace {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListMeta {
-    #[serde(rename = "resourceVersion")]
-    pub resource_version: String,
-    #[serde(rename = "selfLink")]
-    pub self_link: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct NamespaceList {
     #[serde(rename = "apiVersion")]
     pub api_version: String,
     pub items: Vec<Namespace>,
     pub kind: String,
-    pub metadata: ListMeta,
+    pub metadata: meta::ListMeta,
 }
 
 impl KubeKind for NamespaceList {
