@@ -1,5 +1,5 @@
+use api::KubeKind;
 use std::collections::HashMap;
-use super::KubeKind;
 
 type FinalizerName = String;
 type NamespacePhase = String;
