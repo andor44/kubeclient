@@ -1,5 +1,9 @@
 use api::{KubeKind, meta};
 
+pub const API_GROUP: &str = "rbac.authorization.k8s.io";
+pub const API_VERSION: &str = "v1";
+
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ClusterRole {
     pub metadata: meta::ObjectMeta,
@@ -18,9 +22,7 @@ pub struct PolicyRule {
     pub non_resource_urls: Option<Vec<String>>,
 }
 
-impl KubeKind for ClusterRole {
-    const KIND_NAME: &'static str = "clusterroles";
-}
+kube_kind!(ClusterRole, ClusterRoleList, "clusterroles");
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ClusterRoleBinding {
@@ -29,6 +31,18 @@ pub struct ClusterRoleBinding {
     #[serde(rename = "roleRef")]
     pub role_ref: RoleRef,
 }
+
+kube_kind!(ClusterRoleBinding, ClusterRoleBindingList, "clusterrolebindings");
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct RoleBinding {
+    pub metadata: meta::ObjectMeta,
+    pub subjects: Vec<Subject>,
+    #[serde(rename = "roleRef")]
+    pub role_ref: RoleRef,
+}
+
+kube_kind!(RoleBinding, RoleBindingList, "rolebindings");
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Subject {

@@ -4,6 +4,7 @@ use serde_json;
 use reqwest;
 use std::io::Error as IoError;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Error as JsonError;
 use reqwest::{Method, Certificate, Client, Result as HttpResult, Response, Error as HttpError};
 use reqwest::header::{Authorization, Bearer};
@@ -100,49 +101,50 @@ impl KubeClient {
     // the general case is the same output as input it's easier to restrict this for now.
 
     // Cluster methods
-    pub fn create_cluster_object<T: KubeKind>(&self, object: &T) -> RequestResult<T> {
-        self.post_object(&format!("/api/v1/{}", T::KIND_NAME), object)
+    pub fn create_cluster_resource<T: KubeKind>(&self, resource: &T) -> RequestResult<T>
+    {
+        self.post_object(&produce_path::<T>(None, None), resource)
     }
 
-    pub fn update_cluster_object<T: KubeKind>(&self, name: &str, object: &T) -> RequestResult<T> {
-        self.put_object(&format!("/api/v1/{}/{}", T::KIND_NAME, name), object)
+    pub fn update_cluster_resource<T: KubeKind>(&self, name: &str, resource: &T) -> RequestResult<T> {
+        self.put_object(&produce_path::<T>(None, Some(name)), resource)
     }
 
-    pub fn list_cluster_objects<T: KubeKind>(&self) -> RequestResult<T> {
-        self.get_object(&format!("/api/v1/{}", T::KIND_NAME))
+    pub fn list_cluster_resource<T: KubeKind>(&self) -> RequestResult<T::List> {
+        self.get_object(&produce_path::<T>(None, None))
     }
 
-    pub fn get_cluster_object<T: KubeKind>(&self, name: &str) -> RequestResult<T> {
-        self.get_object(&format!("/api/v1/{}/{}", T::KIND_NAME, name))
+    pub fn get_cluster_resource<T: KubeKind>(&self, name: &str) -> RequestResult<T> {
+        self.get_object(&produce_path::<T>(None, Some(name)))
     }
 
-    pub fn delete_cluster_object<T: KubeKind>(&self, name: &str) -> RequestResult<T> {
-        self.delete_object(&format!("/api/v1/{}/{}", T::KIND_NAME, name))
+    pub fn delete_cluster_resource<T: KubeKind>(&self, name: &str) -> RequestResult<T> {
+        self.delete_object(&produce_path::<T>(None, Some(name)))
     }
 
     // Namepsaced methods
-    pub fn create_namespaced_object<T: KubeKind>(&self, namespace: &str, object: &T) -> RequestResult<T> {
-        self.post_object(&format!("/api/v1/namespace/{}/{}", namespace, T::KIND_NAME), object)
+    pub fn create_namespaced_resource<T: KubeKind>(&self, namespace: &str, resource: &T) -> RequestResult<T> {
+        self.post_object(&produce_path::<T>(Some(namespace), None), resource)
     }
 
-    pub fn update_namespaced_object<T: KubeKind>(&self, namespace: &str, name: &str, object: &T) -> RequestResult<T> {
-        self.put_object(&format!("/api/v1/namespace/{}/{}/{}", namespace, T::KIND_NAME, name), object)
+    pub fn update_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str, resource: &T) -> RequestResult<T> {
+        self.put_object(&produce_path::<T>(Some(namespace), Some(name)), resource)
     }
 
-    pub fn get_namespaced_object<T: KubeKind>(&self, namespace: &str, name: &str) -> RequestResult<T> {
-        self.get_object(&format!("/api/v1/namespaces/{}/{}/{}", namespace, T::KIND_NAME, name))
+    pub fn get_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str) -> RequestResult<T> {
+        self.get_object(&produce_path::<T>(Some(namespace), Some(name)))
     }
 
-    pub fn list_namespaced_objects<T: KubeKind>(&self, namespace: &str) -> RequestResult<T> {
-        self.get_object(&format!("/api/v1/namespaces/{}/{}", namespace, T::KIND_NAME))
+    pub fn list_namespaced_resource<T: KubeKind>(&self, namespace: &str) -> RequestResult<T::List> {
+        self.get_object(&produce_path::<T>(Some(namespace), None))
     }
 
-    pub fn delete_namespaced_objects<T: KubeKind>(&self, namespace: &str, name: &str) -> RequestResult<T> {
-        self.delete_object(&format!("/api/v1/namespaces/{}/{}/{}", namespace, T::KIND_NAME, name))
+    pub fn delete_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str) -> RequestResult<T> {
+        self.delete_object(&produce_path::<T>(Some(namespace), Some(name)))
     }
 
     // Low level methods
-    pub fn get_object<T: KubeKind>(&self, path: &str) -> Result<T, RequestError> {
+    pub fn get_object<T: DeserializeOwned>(&self, path: &str) -> Result<T, RequestError> {
         deserialize_api_response(self.request_path::<()>(Method::Get, path, None))
     }
 
@@ -177,7 +179,30 @@ impl KubeClient {
     }
 }
 
-fn deserialize_api_response<T: KubeKind>(response: HttpResult<Response>) -> RequestResult<T> {
+// TODO: how should we deal with subresources?
+fn produce_path<T: KubeKind>(namespace: Option<&str>, resource: Option<&str>) -> String {
+    // First parameter is API path, which consists of:
+    // /api/<version> for core
+    // /apis/<api group>/<version> for everything else
+    // Second parameter is namespacing information
+    // Third is kind name
+    // Finally, an optional object name
+    format!("/{api}/{namespace}{kind}/{object}",
+            api = if T::API_GROUP == "core" {
+                format!("api/{}", T::API_VERSION)
+            } else {
+                format!("apis/{}/{}", T::API_GROUP, T::API_VERSION)
+            },
+            namespace = if let Some(namespace) = namespace {
+                format!("namespaces/{}/", namespace)
+            } else {
+                "".to_string()
+            },
+            object = resource.unwrap_or(""),
+            kind = T::KIND_NAME)
+}
+
+fn deserialize_api_response<T: DeserializeOwned>(response: HttpResult<Response>) -> RequestResult<T> {
     response.map_err(RequestError::TransportError)
             .and_then(|response| {
                 if response.status().is_success() {

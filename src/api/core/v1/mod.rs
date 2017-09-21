@@ -1,5 +1,9 @@
 use api::{KubeKind, meta};
 
+// Core is special
+pub const API_GROUP: &str = "core";
+pub const API_VERSION: &str = "v1";
+
 type FinalizerName = String;
 type NamespacePhase = String;
 
@@ -21,19 +25,4 @@ pub struct Namespace {
     pub status: Option<NamespaceStatus>,
 }
 
-impl KubeKind for Namespace {
-    const KIND_NAME: &'static str = "namespaces";
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct NamespaceList {
-    #[serde(rename = "apiVersion")]
-    pub api_version: String,
-    pub items: Vec<Namespace>,
-    pub kind: String,
-    pub metadata: meta::ListMeta,
-}
-
-impl KubeKind for NamespaceList {
-    const KIND_NAME: &'static str = "namespaces";
-}
+kube_kind!(Namespace, NamespaceList, "namespaces");
