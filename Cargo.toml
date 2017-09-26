@@ -18,3 +18,7 @@ pem-parser = "0.1.1"
 
 # logging
 log = "0.3"
+
+# base64, and serde integration
+base64 = "0.6"
+base64-serde = "0.1"

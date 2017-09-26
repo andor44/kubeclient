@@ -59,7 +59,6 @@ impl ClientConfig {
     }
 }
 
-// TODO: custom debug that obscures auth information and only conveys type of auth
 #[derive(Clone)]
 pub enum AuthConfig {
     Token(String),
