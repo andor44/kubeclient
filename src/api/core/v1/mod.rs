@@ -89,6 +89,7 @@ pub struct Secret {
     // pub string_data: Option<Vec<String>>
     
     pub data: HashMap<String, SecretData>,
+    #[serde(rename = "type")]
     pub secret_type: Option<SecretType>,
 }
 
