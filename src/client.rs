@@ -144,7 +144,7 @@ impl KubeClient {
     }
 
     // Low level methods
-    pub fn get_object<T: DeserializeOwned>(&self, path: &str) -> Result<T, RequestError> {
+    pub fn get_object<T: DeserializeOwned>(&self, path: &str) -> RequestResult<T> {
         deserialize_api_response(self.request_path::<()>(Method::Get, path, None))
     }
 
@@ -156,7 +156,7 @@ impl KubeClient {
         deserialize_api_response(self.request_path(Method::Put, path, Some(object)))
     }
 
-    pub fn delete_object<T: KubeKind>(&self, path: &str) -> Result<T, RequestError> {
+    pub fn delete_object<T: KubeKind>(&self, path: &str) -> RequestResult<T> {
         deserialize_api_response(self.request_path::<()>(Method::Delete, path, None))
     }
 

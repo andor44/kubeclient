@@ -13,7 +13,7 @@ extern crate pem_parser;
 extern crate base64;
 // TODO: see if this crate can be used
 // at the moment it cannot, due to it appearing in a compound type
-#[macro_use] extern crate base64_serde;
+// #[macro_use] extern crate base64_serde;
 
 mod utils;
 pub mod client;
