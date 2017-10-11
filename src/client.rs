@@ -13,6 +13,7 @@ use utils;
 use api::KubeKind;
 use config::{ClientConfig, AuthConfig};
 
+// the name and location for in-cluster runtime configuration parameters
 const INCLUSTER_CA_FILE: &str = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
 const INCLUSTER_TOKEN_FILE: &str = "/var/run/secrets/kubernetes.io/serviceaccount/token";
 const INCLUSTER_API_HOST_NAME: &str = "KUBERNETES_SERVICE_HOST";
@@ -25,6 +26,7 @@ pub struct KubeClient {
     client: Client,
 }
 
+// produce a base HTTP URI from the given host and port
 fn join_host_port(host: &str, port: &str) -> String {
     // handle IPv6 addresses
     if host.contains(':') || host.contains('%') {
@@ -34,21 +36,31 @@ fn join_host_port(host: &str, port: &str) -> String {
     }
 }
 
+/// Error type used to represent errors that can occur during calls to the Kubernetes API
 #[derive(Debug)]
 pub enum RequestError {
+    /// A low-level HTTP error
     TransportError(HttpError),
+    /// A successful request was made but it did not contain the expected response
     HttpError(Response),
+    /// The response could not be deserialized
     SerdeError(JsonError),
+    /// Other misc. error
     MiscError,
 }
 
-type RequestResult<T> = Result<T, RequestError>;
+pub type RequestResult<T> = Result<T, RequestError>;
 
+/// Errors that can occur during client initialization
 #[derive(Debug)]
 pub enum ClientInitError {
+    /// The env var that was being looked up and the reason the lookup failed
     EnvVarError(String, ::std::env::VarError),
+    /// IO error while attempting to read a file
     IoError(IoError),
+    /// Certificate parsing error
     InvalidCert(HttpError),
+    /// Low-level HTTP client-building error
     ClientBuildingError(HttpError),
 }
 
