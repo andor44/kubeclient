@@ -20,5 +20,5 @@ pub mod client;
 pub mod api;
 pub mod config;
 
-pub use client::{RequestError, KubeClient};
+pub use client::{RequestResult, RequestError, KubeClient};
 pub use config::{ClientConfig, AuthConfig};
