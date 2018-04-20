@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+mod group_version;
+pub use self::group_version::*;
+
 #[serde(rename_all = "camelCase")]
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ObjectMeta {

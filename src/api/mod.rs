@@ -22,8 +22,10 @@ macro_rules! kube_kind {
     }
 }
 
-pub mod meta;
+pub mod admission;
+pub mod authentication;
 pub mod core;
+pub mod meta;
 pub mod rbac;
 
 

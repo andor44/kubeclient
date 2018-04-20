@@ -15,6 +15,8 @@ extern crate base64;
 // at the moment it cannot, due to it appearing in a compound type
 // #[macro_use] extern crate base64_serde;
 
+extern crate uuid;
+
 mod utils;
 pub mod client;
 pub mod api;
