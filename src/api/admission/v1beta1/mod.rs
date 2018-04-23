@@ -9,7 +9,8 @@ type Operation = String;
 pub struct AdmissionRequest<T> {
     // TODO: not string, UUID
     pub uid: Uuid,
-    pub kind: api::meta::v1::GroupVersionKind,
+    pub kind: String,//api::meta::v1::GroupVersionKind,
+    pub resource: api::meta::v1::GroupVersionResource,
     pub subresource: Option<String>,
     pub name: Option<String>,
     pub namespace: Option<String>,
