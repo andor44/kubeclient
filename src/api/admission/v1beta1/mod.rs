@@ -5,6 +5,7 @@ use api;
 
 type Operation = String;
 
+#[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AdmissionReview<T> {
     #[serde(flatten)]
@@ -15,6 +16,7 @@ pub struct AdmissionReview<T> {
     // pub response: Option<AdmissionRequest<T>>,
 }
 
+#[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AdmissionRequest<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
