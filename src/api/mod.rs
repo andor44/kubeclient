@@ -16,7 +16,7 @@ use serde::Serialize;
 
 macro_rules! kube_kind {
     ( $typ:ty, $list_name:ident, $name: expr ) => {
-        impl KubeKind for $typ {
+        impl ::api::KubeKind for $typ {
             const KIND_NAME: &'static str = $name;
             const API_GROUP: &'static str = API_GROUP;
             const API_VERSION: &'static str = API_VERSION;
@@ -30,7 +30,7 @@ macro_rules! kube_kind {
             pub api_version: String,
             pub items: Vec<$typ>,
             pub kind: String,
-            pub metadata: meta::ListMeta,
+            pub metadata: ::api::meta::ListMeta,
         }
     }
 }
@@ -53,4 +53,11 @@ pub trait KubeKind: DeserializeOwned + Serialize {
     const API_VERSION: &'static str;
 
     type List: DeserializeOwned = Vec<Self>;
+}
+
+#[serde(untagged)]
+#[derive(Serialize, Deserialize, Debug)]
+pub enum IntOrString {
+    Int(i64),
+    String(String),
 }

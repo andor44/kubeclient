@@ -1,4 +1,4 @@
-use api::{KubeKind, meta};
+use api::meta;
 
 pub const API_GROUP: &str = "rbac.authorization.k8s.io";
 pub const API_VERSION: &str = "v1beta1";
@@ -6,7 +6,7 @@ pub const API_VERSION: &str = "v1beta1";
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ClusterRole {
-    pub metadata: meta::ObjectMeta,
+    pub metadata: meta::v1::ObjectMeta,
     pub rules: Vec<PolicyRule>,
 }
 
@@ -25,7 +25,7 @@ kube_kind!(ClusterRole, ClusterRoleList, "clusterroles");
 #[serde(rename_all = "camelCase")]
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ClusterRoleBinding {
-    pub metadata: meta::ObjectMeta,
+    pub metadata: meta::v1::ObjectMeta,
     pub subjects: Vec<Subject>,
     pub role_ref: RoleRef,
 }
@@ -35,7 +35,7 @@ kube_kind!(ClusterRoleBinding, ClusterRoleBindingList, "clusterrolebindings");
 #[serde(rename_all = "camelCase")]
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RoleBinding {
-    pub metadata: meta::ObjectMeta,
+    pub metadata: meta::v1::ObjectMeta,
     pub subjects: Vec<Subject>,
     pub role_ref: RoleRef,
 }

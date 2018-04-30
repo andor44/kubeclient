@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+
+use chrono;
 use uuid::Uuid;
 
 mod group_version;
@@ -54,4 +56,26 @@ pub struct TypeMeta {
     pub kind: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub self_link: String,
+}
+
+pub type Time = chrono::DateTime<chrono::FixedOffset>;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LabelSelector {
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub match_labels: HashMap<String, String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub match_expressions: Vec<LabelSelectorRequirement>,
+}
+
+pub type LabelSelectorOperator = String;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LabelSelectorRequirement {
+    pub key: String,
+    pub operator: LabelSelectorOperator,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub values: Vec<String>,
 }

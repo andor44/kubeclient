@@ -17,6 +17,8 @@ extern crate base64;
 
 extern crate uuid;
 
+extern crate chrono;
+
 mod utils;
 pub mod client;
 pub mod api;
