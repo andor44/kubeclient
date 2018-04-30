@@ -73,8 +73,9 @@ pub struct ContainerStatus {
     pub ready: bool,
     pub restart_count: i32,
     pub image: String,
+    #[serde(rename = "imageID")]
     pub image_id: String,
-    #[serde(rename = "containerID", skip_serializing_if = "String::is_empty")]
+    #[serde(rename = "containerID", default, skip_serializing_if = "String::is_empty")]
     pub container_id: String,
 }
 
@@ -136,10 +137,13 @@ pub struct PodSpec {
     pub init_containers: Vec<Container>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub containers: Vec<Container>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub restart_policy: RestartPolicy,
     pub termination_grace_period_seconds: Option<i64>,
     pub active_deadline_seconds: Option<i64>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub dns_policy: DnsPolicy,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub node_selector: HashMap<String, String>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub service_account_name: String,
