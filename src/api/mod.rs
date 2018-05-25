@@ -52,7 +52,7 @@ pub trait KubeKind: DeserializeOwned + Serialize {
     const API_GROUP: &'static str;
     const API_VERSION: &'static str;
 
-    type List: DeserializeOwned = Vec<Self>;
+    type List: DeserializeOwned;
 }
 
 #[serde(untagged)]
