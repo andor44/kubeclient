@@ -45,7 +45,7 @@ pub struct ListMeta {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub self_link: String,
     // `continue` is a reserved keyword
-    #[serde(rename = "continue", skip_serializing_if = "String::is_empty")]
+    #[serde(default, rename = "continue", skip_serializing_if = "String::is_empty")]
     pub _continue: String,
 }
 
