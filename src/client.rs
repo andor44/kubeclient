@@ -66,7 +66,7 @@ pub enum ClientInitError {
 
 impl KubeClient {
     pub fn new(config: ClientConfig) -> Result<KubeClient, ClientInitError> {
-        let mut builder = Client::builder().map_err(ClientInitError::ClientBuildingError)?;
+        let mut builder = Client::builder();
 
         match config {
             ClientConfig::InCluster => {
@@ -93,7 +93,7 @@ impl KubeClient {
             ClientConfig::External { api_url, auth_info, ca } => {
                 if let Some(ca) = ca {
                     debug!("Adding CA cert");
-                    builder.add_root_certificate(ca).map_err(ClientInitError::ClientBuildingError)?;
+                    builder.add_root_certificate(ca);
                 }
                 let client = builder.build().map_err(ClientInitError::ClientBuildingError)?;
                 Ok(KubeClient {
@@ -182,10 +182,10 @@ impl KubeClient {
 
     fn request_path<T: Serialize>(&self, method: Method, path: &str, body: Option<&T>) -> HttpResult<Response> {
         let uri = format!("{}{}", self.api_url, path);
-        let mut request = self.client.request(method, &uri).expect("unable to create RequestBuilder");
+        let mut request = self.client.request(method, &uri);
         self.authorize_request(&mut request);
         if let Some(body) = body {
-            request.json(body)?;
+            request.json(body);
         }
         request.send()
     }

@@ -5,7 +5,7 @@ authors = ["Andor Uhlár <andor44@gmail.com>"]
 
 [dependencies]
 # http requests
-reqwest = "0.7"
+reqwest = "0.8"
 
 # serialization
 serde = "1.0"
