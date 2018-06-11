@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use chrono;
 use uuid::Uuid;
+use num_traits;
 
 mod group_version;
 pub use self::group_version::*;
@@ -21,9 +22,9 @@ pub struct ObjectMeta {
     pub uid: Option<Uuid>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub resource_version: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "num_traits::Zero::is_zero")]
     pub generation: i64,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub creation_timestamp: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deletion_timestamp: Option<String>,

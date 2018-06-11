@@ -28,3 +28,6 @@ uuid = { version = "0.6", features = ["serde", "v4"] }
 
 # time representation
 chrono = { version = "0.4", features = ["serde"] }
+
+# num
+num-traits = "0.2"

@@ -29,6 +29,7 @@ pub struct NamespaceStatus {
 pub struct Namespace {
     pub metadata: meta::v1::ObjectMeta,
     pub spec: NamespaceSpec,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<NamespaceStatus>,
 }
 

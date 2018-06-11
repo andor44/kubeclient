@@ -17,6 +17,8 @@ extern crate uuid;
 
 extern crate chrono;
 
+extern crate num_traits;
+
 mod utils;
 pub mod client;
 pub mod api;
