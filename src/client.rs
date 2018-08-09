@@ -1,4 +1,5 @@
-use std::env;
+use std::{env, fmt};
+use std::error::Error as StdError;
 use pem_parser;
 use serde_json;
 use reqwest;
@@ -47,6 +48,35 @@ pub enum RequestError {
     SerdeError(JsonError),
     /// Other misc. error
     MiscError,
+}
+
+impl fmt::Display for RequestError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl StdError for RequestError {
+    fn description(&self) -> &str {
+        match self {
+            RequestError::TransportError(_) =>
+                "There was an error during the HTTP request",
+            RequestError::HttpError(_) =>
+                "Received an unexpected response from the Kubernetes API",
+            RequestError::SerdeError(_) =>
+                "Error during deserialization of response body",
+            RequestError::MiscError =>
+                "Unknown, miscellaneous error (shouldn't happen)",
+        }
+    }
+    fn cause(&self) -> Option<&StdError> {
+        match self {
+            RequestError::TransportError(error) => Some(error as &StdError),
+            RequestError::HttpError(_) => None,
+            RequestError::SerdeError(error) => Some(error as &StdError),
+            RequestError::MiscError => None,
+        }
+    }
 }
 
 pub type RequestResult<T> = Result<T, RequestError>;
