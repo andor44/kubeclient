@@ -13,21 +13,13 @@ serde_json = "1.0"
 serde_yaml = "0.8"
 serde_derive = "1.0"
 
-# converting PEM certs to DER
-pem-parser = "0.1.1"
-
 # logging
 log = "0.4"
 
 # base64, and serde integration
 base64 = "0.9"
-base64-serde = "0.3"
-
-# uuids
+# unused, at the moment
+# base64-serde = "0.3"
 uuid = { version = "0.7", features = ["serde", "v4"] }
-
-# time representation
 chrono = { version = "0.4", features = ["serde"] }
-
-# num
 num-traits = "0.2"

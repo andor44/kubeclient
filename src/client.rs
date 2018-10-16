@@ -1,6 +1,5 @@
 use std::{env, fmt};
 use std::error::Error as StdError;
-use pem_parser;
 use serde_json;
 use reqwest;
 use std::io::Error as IoError;
@@ -108,10 +107,9 @@ impl KubeClient {
                 let token_file_contents = &utils::read_file(INCLUSTER_TOKEN_FILE).map_err(ClientInitError::IoError)?;
                 let token = String::from_utf8_lossy(token_file_contents).into_owned();
 
-                let ca_file = utils::read_file(INCLUSTER_CA_FILE).expect("unable to read k8s ca file");
-                // This is guaranteed to be PEM-encoded, therefore valid UTF8
-                let ca_file = String::from_utf8(ca_file).expect("invalid PEM data in k8s CA file?");
-                let ca = Certificate::from_der(&pem_parser::pem_to_der(&ca_file))
+                let ca_file = utils::read_file(INCLUSTER_CA_FILE)
+                                    .map_err(ClientInitError::IoError)?;
+                let ca = Certificate::from_pem(&ca_file)
                                      .map_err(ClientInitError::InvalidCert)?;
 
                 KubeClient::new(ClientConfig::External { 

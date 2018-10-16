@@ -1,6 +1,5 @@
 use reqwest::Certificate;
 use utils;
-use pem_parser;
 use std::fmt;
 
 #[derive(Debug)]
@@ -48,7 +47,7 @@ impl ClientConfig {
         } else if let Some(ca_path) = cluster.certificate_authority.as_ref() {
             // Path given to a certificate file
             let ca_pem = utils::read_file(ca_path).map_err(|_| KubeconfigParseError::MissingFile(ca_path.clone()))?;
-            Some(Certificate::from_der(&pem_parser::pem_to_der(String::from_utf8_lossy(&ca_pem).as_ref()))
+            Some(Certificate::from_pem(&ca_pem)
                              .map_err(|_| KubeconfigParseError::InvalidCertificate(ca_path.clone()))?)
         } else { None };
         Ok(ClientConfig::External {
