@@ -8,7 +8,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Error as JsonError;
 use reqwest::{Method, Certificate, Client, Result as HttpResult, Response, Error as HttpError};
-use reqwest::header::{Authorization, Bearer};
+use reqwest::header::AUTHORIZATION;
 
 use utils;
 use api::KubeKind;
@@ -123,7 +123,7 @@ impl KubeClient {
             ClientConfig::External { api_url, auth_info, ca } => {
                 if let Some(ca) = ca {
                     debug!("Adding CA cert");
-                    builder.add_root_certificate(ca);
+                    builder = builder.add_root_certificate(ca);
                 }
                 let client = builder.build().map_err(ClientInitError::ClientBuildingError)?;
                 Ok(KubeClient {
@@ -187,35 +187,35 @@ impl KubeClient {
 
     // Low level methods
     pub fn get_object<T: DeserializeOwned>(&self, path: &str) -> RequestResult<T> {
-        deserialize_api_response(self.request_path::<()>(Method::Get, path, None))
+        deserialize_api_response(self.request_path::<()>(Method::GET, path, None))
     }
 
     pub fn post_object<T: KubeKind, U: KubeKind>(&self, path: &str, object: &T) -> RequestResult<U> {
-        deserialize_api_response(self.request_path(Method::Post, path, Some(object)))
+        deserialize_api_response(self.request_path(Method::POST, path, Some(object)))
     }
 
     pub fn put_object<T: KubeKind, U: KubeKind>(&self, path: &str, object: &T) -> RequestResult<U> {
-        deserialize_api_response(self.request_path(Method::Put, path, Some(object)))
+        deserialize_api_response(self.request_path(Method::PUT, path, Some(object)))
     }
 
     pub fn delete_object<T: KubeKind>(&self, path: &str) -> RequestResult<T> {
-        deserialize_api_response(self.request_path::<()>(Method::Delete, path, None))
+        deserialize_api_response(self.request_path::<()>(Method::DELETE, path, None))
     }
 
-    fn authorize_request(&self, request: &mut reqwest::RequestBuilder) {
+    fn authorize_request(&self, request: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
         // TODO: add logic for different auth methods
         match self.auth_info {
-            AuthConfig::Token(ref bearer) => request.header(Authorization(Bearer { token: bearer.clone() })),
+            AuthConfig::Token(ref bearer) =>
+                request.header(AUTHORIZATION, format!("Bearer: {}", bearer.clone())),
             _ => unimplemented!(),
-        };
+        }
     }
 
     fn request_path<T: Serialize>(&self, method: Method, path: &str, body: Option<&T>) -> HttpResult<Response> {
         let uri = format!("{}{}", self.api_url, path);
-        let mut request = self.client.request(method, &uri);
-        self.authorize_request(&mut request);
+        let mut request = self.authorize_request(self.client.request(method, &uri));
         if let Some(body) = body {
-            request.json(body);
+            request = request.json(body);
         }
         request.send()
     }
