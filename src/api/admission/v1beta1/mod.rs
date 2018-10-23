@@ -47,8 +47,8 @@ pub struct AdmissionResponse {
     pub allowed: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<api::meta::v1::Status>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub patch: Vec<u8>,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub patch: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub patch_type: Option<PatchType>,
 }
