@@ -12,6 +12,7 @@ pub struct AdmissionReview<T> {
     pub type_meta: api::meta::v1::TypeMeta,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<AdmissionRequest<T>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<AdmissionResponse>,
 }
 
@@ -45,7 +46,7 @@ pub struct AdmissionResponse {
     pub uid: Option<Uuid>,
     pub allowed: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<api::meta::v1::Status>,
+    pub status: Option<api::meta::v1::Status>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub patch: Vec<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
