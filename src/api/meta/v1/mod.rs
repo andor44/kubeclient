@@ -80,3 +80,51 @@ pub struct LabelSelectorRequirement {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
 }
+
+type CauseType = String;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusCause {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub cause: CauseType,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub message: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub field: String,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusDetails {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub group: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub kind: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uid: Option<Uuid>,
+    pub causes: Vec<StatusCause>,
+    #[serde(default)]
+    pub retry_after_seconds: i32,
+}
+
+type StatusReason = String;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Status {
+    #[serde(flatten)]
+    pub type_meta: TypeMeta,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<ListMeta>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub status: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub message: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub reason: StatusReason,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<StatusDetails>,
+}

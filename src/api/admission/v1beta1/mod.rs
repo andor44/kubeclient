@@ -12,8 +12,7 @@ pub struct AdmissionReview<T> {
     pub type_meta: api::meta::v1::TypeMeta,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<AdmissionRequest<T>>,
-    // TODO: impl
-    // pub response: Option<AdmissionRequest<T>>,
+    pub response: Option<AdmissionResponse>,
 }
 
 #[serde(rename_all = "camelCase")]
@@ -35,4 +34,20 @@ pub struct AdmissionRequest<T> {
     pub object: Option<T>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub old_object: Option<T>,
+}
+
+type PatchType = String;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AdmissionResponse {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uid: Option<Uuid>,
+    pub allowed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<api::meta::v1::Status>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub patch: Vec<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub patch_type: Option<PatchType>,
 }
