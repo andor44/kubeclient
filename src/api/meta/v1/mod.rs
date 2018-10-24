@@ -127,4 +127,6 @@ pub struct Status {
     pub reason: StatusReason,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<StatusDetails>,
+    #[serde(default)]
+    pub code: i32,
 }
