@@ -22,6 +22,7 @@ extern crate num_traits;
 mod utils;
 pub mod client;
 pub mod api;
+pub mod apimachinery;
 pub mod config;
 
 pub use client::{RequestResult, RequestError, KubeClient};

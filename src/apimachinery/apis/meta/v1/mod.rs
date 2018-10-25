@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-
 use chrono;
+use num_traits::Zero;
 use uuid::Uuid;
-use num_traits;
 
 mod group_version;
+
 pub use self::group_version::*;
 
 #[serde(rename_all = "camelCase")]
@@ -22,12 +22,12 @@ pub struct ObjectMeta {
     pub uid: Option<Uuid>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub resource_version: String,
-    #[serde(default, skip_serializing_if = "num_traits::Zero::is_zero")]
+    #[serde(default, skip_serializing_if = "i64::is_zero")]
     pub generation: i64,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub creation_timestamp: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deletion_timestamp: Option<String>,
+    pub creation_timestamp: Option<Time>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deletion_timestamp: Option<Time>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deletion_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -51,12 +51,12 @@ pub struct ListMeta {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TypeMeta {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub kind: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub self_link: String,
+    pub api_version: String,
 }
 
 pub type Time = chrono::DateTime<chrono::FixedOffset>;

@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+use apimachinery::apis::meta;
 use api;
 
 
@@ -9,7 +10,7 @@ type Operation = String;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AdmissionReview<T> {
     #[serde(flatten)]
-    pub type_meta: api::meta::v1::TypeMeta,
+    pub type_meta: meta::v1::TypeMeta,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<AdmissionRequest<T>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,8 +22,8 @@ pub struct AdmissionReview<T> {
 pub struct AdmissionRequest<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uid: Option<Uuid>,
-    pub kind: api::meta::v1::GroupVersionKind,
-    pub resource: api::meta::v1::GroupVersionResource,
+    pub kind: meta::v1::GroupVersionKind,
+    pub resource: meta::v1::GroupVersionResource,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub subresource: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -46,7 +47,7 @@ pub struct AdmissionResponse {
     pub uid: Option<Uuid>,
     pub allowed: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<api::meta::v1::Status>,
+    pub status: Option<meta::v1::Status>,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub patch: String,
     #[serde(skip_serializing_if = "Option::is_none")]

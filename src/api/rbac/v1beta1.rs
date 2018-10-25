@@ -1,6 +1,6 @@
-use api::meta;
+use apimachinery::apis::meta;
 
-pub const API_GROUP: &str = "rbac.authorization.k8s.io";
+use super::API_GROUP;
 pub const API_VERSION: &str = "v1beta1";
 
 

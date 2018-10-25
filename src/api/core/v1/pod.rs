@@ -1,20 +1,25 @@
 use std::collections::HashMap;
 
-use api;
+use apimachinery::apis::meta;
+use apimachinery::api::resource;
+use apimachinery::util::IntOrString;
+use super::{API_GROUP, API_VERSION};
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Pod {
     #[serde(flatten)]
-    pub type_meta: api::meta::v1::TypeMeta,
-    pub metadata: api::meta::v1::ObjectMeta,
+    pub type_meta: meta::v1::TypeMeta,
+    pub metadata: meta::v1::ObjectMeta,
     pub spec: PodSpec,
     pub status: PodStatus,
 }
 
-type PodPhase = String;
+kube_kind!(Pod, PodList, "pods");
 
-type PodQOSClass = String;
+pub type PodPhase = String;
+
+pub type PodQOSClass = String;
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
@@ -34,7 +39,7 @@ pub struct PodStatus {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub pod_ip: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<api::meta::Time>,
+    pub start_time: Option<meta::v1::Time>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub init_container_statuses: Vec<ContainerStatus>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -53,9 +58,9 @@ pub struct PodCondition {
     pub condition_type: PodConditionType,
     pub status: ConditionStatus,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_probe_time: Option<api::meta::Time>,
+    pub last_probe_time: Option<meta::v1::Time>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_transition_time: Option<api::meta::Time>,
+    pub last_transition_time: Option<meta::v1::Time>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub reason: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -104,7 +109,7 @@ pub struct ContainerStateWaiting {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ContainerStateRunning {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub started_at: Option<api::meta::Time>,
+    pub started_at: Option<meta::v1::Time>,
 }
 
 #[serde(rename_all = "camelCase")]
@@ -118,9 +123,9 @@ pub struct ContainerStateTerminated {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub started_at: Option<api::meta::Time>,
+    pub started_at: Option<meta::v1::Time>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub finished_at: Option<api::meta::Time>,
+    pub finished_at: Option<meta::v1::Time>,
     #[serde(rename = "containerID", skip_serializing_if = "String::is_empty")]
     pub container_id: String,
 }
@@ -129,7 +134,7 @@ type DnsPolicy = String;
 type RestartPolicy = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct PodSpec {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub volumes: Vec<Volume>,
@@ -140,6 +145,7 @@ pub struct PodSpec {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub restart_policy: RestartPolicy,
     pub termination_grace_period_seconds: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_deadline_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub dns_policy: DnsPolicy,
@@ -153,11 +159,11 @@ pub struct PodSpec {
     pub automount_service_account_token: Option<bool>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub node_name: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
     pub host_network: bool,
-    #[serde(rename = "hostPID", default)]
+    #[serde(rename = "hostPID", default, skip_serializing_if = "::std::ops::Not::not")]
     pub host_pid: bool,
-    #[serde(rename = "hostIPC", default)]
+    #[serde(rename = "hostIPC", default, skip_serializing_if = "::std::ops::Not::not")]
     pub host_ipc: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub share_process_namespace: Option<bool>,
@@ -189,14 +195,74 @@ pub struct PodSpec {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Volume {
     pub name: String,
-    // #[serde(flatten)]
-    // pub source: VolumeSource,
+    #[serde(flatten)]
+    pub source: VolumeSource,
 }
 
-// TODO: implement
-// pub enum VolumeSource {
-// 
-// }
+pub type HostPathType = String;
+pub type StorageMedium = String;
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KeyToPath {
+    pub key: String,
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<i32>,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub enum VolumeSource {
+    #[serde(rename_all = "camelCase")]
+    HostPath {
+        path: String,
+        // TODO: make this an enum?
+        #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+        type_: Option<String>,
+    },
+    #[serde(rename_all = "camelCase")]
+    EmptyDir {
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        medium: StorageMedium,
+        // TODO: sizeLimit field
+    },
+    #[serde(rename_all = "camelCase")]
+    Secret {
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        secret_name: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        items: Vec<KeyToPath>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        default_mode: Option<i32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        optional: Option<bool>,
+    },
+    #[serde(rename_all = "camelCase")]
+    PersistentVolumeClaim {
+        claim_name: String,
+        #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
+        read_only: bool,
+    },
+    DownwardAPI {
+
+    },
+    #[serde(rename_all = "camelCase")]
+    ConfigMap {
+        #[serde(flatten)]
+        reference: LocalObjectReference,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        items: Vec<KeyToPath>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        default_mode: Option<i32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        optional: Option<bool>,
+    },
+    Projected {
+
+    },
+    // TODO: rest of the volume types
+}
 
 type TerminationMessagePolicy = String;
 type PullPolicy = String;
@@ -239,11 +305,11 @@ pub struct Container {
     pub image_pull_policy: Option<PullPolicy>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub security_context: Option<SecurityContext>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
     pub stdin: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
     pub stdin_once: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
     pub tty: bool,
 }
 
@@ -356,17 +422,13 @@ pub struct SecretKeySelector {
     pub optional: bool,
 }
 
-type ResourceName = String;
-// TODO: implement quantity parsing
-type ResourceList = HashMap<ResourceName, api::IntOrString>;
-
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResourceRequirements {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub limits: ResourceList,
+    pub limits: resource::ResourceList,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub requests: ResourceList,
+    pub requests: resource::ResourceList,
 }
 
 type MountPropagationMode = String;
@@ -375,7 +437,7 @@ type MountPropagationMode = String;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VolumeMount {
     pub name: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
     pub read_only: bool,
     pub mount_path: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -420,7 +482,7 @@ pub enum Handler {
     HttpGet {
         #[serde(default, skip_serializing_if = "String::is_empty")]
         path: String,
-        port: api::IntOrString,
+        port: IntOrString,
         #[serde(default, skip_serializing_if = "String::is_empty")]
         host: String,
         #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -429,7 +491,7 @@ pub enum Handler {
         http_headers: Vec<HttpHeader>,
     },
     TcpSocket {
-        port: api::IntOrString,
+        port: IntOrString,
         #[serde(default, skip_serializing_if = "String::is_empty")]
         host: String,
     },
@@ -586,7 +648,7 @@ pub struct PodAntiAffinity {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PodAffinityTerm {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub label_selector: Option<api::meta::v1::LabelSelector>,
+    pub label_selector: Option<meta::v1::LabelSelector>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub namespaces: Vec<String>,
     pub topology_key: String,
@@ -644,4 +706,13 @@ pub struct PodDnsConfigOption {
     pub name: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub value: String,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PodTemplateSpec {
+    #[serde(default)]
+    pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
+    pub spec: PodSpec,
 }

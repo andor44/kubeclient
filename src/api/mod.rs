@@ -26,11 +26,10 @@ macro_rules! kube_kind {
 
         #[derive(Debug, Serialize, Deserialize)]
         pub struct $list_name {
-            #[serde(rename = "apiVersion")]
-            pub api_version: String,
+            #[serde(flatten)]
+            pub type_meta: meta::v1::TypeMeta,
             pub items: Vec<$typ>,
-            pub kind: String,
-            pub metadata: ::api::meta::ListMeta,
+            pub metadata: ::apimachinery::apis::meta::v1::ListMeta,
         }
     }
 }
@@ -38,8 +37,8 @@ macro_rules! kube_kind {
 pub mod admission;
 pub mod authentication;
 pub mod core;
-pub mod meta;
 pub mod rbac;
+pub mod apps;
 
 
 /// Trait used to represent types used in the Kubernetes API
@@ -53,11 +52,4 @@ pub trait KubeKind: DeserializeOwned + Serialize {
     const API_VERSION: &'static str;
 
     type List: DeserializeOwned;
-}
-
-#[serde(untagged)]
-#[derive(Serialize, Deserialize, Debug)]
-pub enum IntOrString {
-    Int(i64),
-    String(String),
 }

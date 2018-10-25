@@ -6,6 +6,7 @@ use serde::{Serialize, Serializer};
 use serde::de::{self, Visitor, Deserialize, Deserializer};
 
 use api;
+use apimachinery::apis::meta;
 use super::{API_GROUP, API_VERSION};
 
 
@@ -57,7 +58,7 @@ impl<'de> Deserialize<'de> for SecretData {
 // struct SecretDat
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Secret {
-    pub metadata: api::meta::ObjectMeta,
+    pub metadata: meta::v1::ObjectMeta,
     pub status: Option<api::core::NamespaceStatus>,
     // TODO: stringData is a key that is used for reading only, never writing
     // therefore it is never in the output. Should this library care about fields like that?
