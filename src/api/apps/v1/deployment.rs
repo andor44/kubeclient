@@ -2,100 +2,93 @@ use num_traits::Zero;
 
 use api;
 use apimachinery::apis::meta;
+use apimachinery::util::IntOrString;
 use super::{API_GROUP, API_VERSION};
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StatefulSet {
+pub struct Deployment {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
     pub metadata: meta::v1::ObjectMeta,
-    pub spec: StatefulSetSpec,
-    pub status: StatefulSetStatus,
+    pub spec: DeploymentSpec,
+    pub status: DeploymentStatus,
 }
 
-kube_kind!(StatefulSet, StatefulSetList, "statefulsets");
-
-pub type PodManagementPolicyType = String;
+kube_kind!(Deployment, DeploymentList, "deployments");
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StatefulSetSpec {
+pub struct DeploymentSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicas: Option<i32>,
     #[serde(default)]
     pub selector: Option<meta::v1::LabelSelector>,
     pub template: api::core::v1::PodTemplateSpec,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub volume_claim_templates: Vec<api::core::v1::PersistentVolumeClaim>,
-    pub service_name: String,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub pod_management_policy: PodManagementPolicyType,
-    #[serde(default)]
-    pub update_strategy: StatefulSetUpdateStrategy,
+    pub strategy: DeploymentStrategy,
+    #[serde(default, skip_serializing_if = "Zero::is_zero")]
+    pub min_ready_seconds: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub revision_history_limit: Option<i32>,
-}
-
-pub type StatefulSetUpdateStrategyType = String;
-
-#[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
-pub struct StatefulSetUpdateStrategy {
-    #[serde(rename = "type", default, skip_serializing_if = "String::is_empty")]
-    pub strategy_type: StatefulSetUpdateStrategyType,
+    #[serde(default, skip_serializing_if = "::std::ops::Not::not")]
+    pub paused: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub rolling_update: Option<RollingUpdateStatefulSetStrategy>,
+    pub progress_deadline_seconds: Option<i32>,
 }
 
-impl ::std::default::Default for StatefulSetUpdateStrategy {
-    fn default() -> Self {
-        StatefulSetUpdateStrategy {
-            strategy_type: "RollingUpdate".to_string(),
-            rolling_update: None,
-        }
-    }
-}
+pub type DeploymentStrategyType = String;
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct RollingUpdateStatefulSetStrategy {
+pub struct DeploymentStrategy {
+    #[serde(rename = "type", skip_serializing_if = "String::is_empty")]
+    pub strategy_type: DeploymentStrategyType,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub partition: Option<i32>,
+    pub rolling_update: Option<RollingUpdateDeployment>,
 }
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StatefulSetStatus {
+pub struct RollingUpdateDeployment {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_unavailable: Option<IntOrString>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_surge: Option<IntOrString>,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeploymentStatus {
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub observed_generation: i64,
+    #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub replicas: i32,
+    #[serde(default, skip_serializing_if = "Zero::is_zero")]
+    pub updated_replicas: i32,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub ready_replicas: i32,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
-    pub current_replicas: i32,
+    pub available_replicas: i32,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
-    pub updated_replicas: i32,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub current_revision: String,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub update_revision: String,
+    pub unavailable_replicas: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub collision_count: Option<i32>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub conditions: Vec<StatefulSetCondition>,
+    pub conditions: Vec<DeploymentCondition>,
 }
 
-type StatefulSetConditionType = String;
+type DeploymentConditionType = String;
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StatefulSetCondition {
+pub struct DeploymentCondition {
     #[serde(rename = "type")]
-    pub condition_type: StatefulSetConditionType,
+    pub condition_type: DeploymentConditionType,
     pub status: api::core::v1::ConditionStatus,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_transition_time: Option<meta::v1::Time>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_update_time: Option<meta::v1::Time>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub reason: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
