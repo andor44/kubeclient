@@ -15,7 +15,7 @@ pub struct DaemonSet {
     pub status: DaemonSetStatus,
 }
 
-kube_kind!(DaemonSet, DaemonSetList, "daemonset");
+kube_kind!(DaemonSet, DaemonSetList, "daemonsets");
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize, Debug)]
