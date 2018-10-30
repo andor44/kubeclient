@@ -44,6 +44,7 @@ pub struct PodStatus {
     pub init_container_statuses: Vec<ContainerStatus>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub container_statuses: Vec<ContainerStatus>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub qos_class: PodQOSClass,
 }
 
