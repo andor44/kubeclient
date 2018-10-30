@@ -136,7 +136,7 @@ pub struct StatusCause {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct StatusDetails {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub name: String,
@@ -146,6 +146,7 @@ pub struct StatusDetails {
     pub kind: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uid: Option<Uuid>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub causes: Vec<StatusCause>,
     #[serde(default)]
     pub retry_after_seconds: i32,
@@ -154,7 +155,7 @@ pub struct StatusDetails {
 type StatusReason = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Status {
     #[serde(flatten)]
     pub type_meta: TypeMeta,
