@@ -10,8 +10,11 @@ use super::{API_GROUP, API_VERSION};
 pub struct Pod {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
+    #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
     pub spec: PodSpec,
+    #[serde(default)]
     pub status: PodStatus,
 }
 
@@ -22,9 +25,9 @@ pub type PodPhase = String;
 pub type PodQOSClass = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct PodStatus {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub phase: PodPhase,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub conditions: Vec<PodCondition>,
@@ -72,10 +75,10 @@ pub struct PodCondition {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ContainerStatus {
     pub name: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub state: Option<ContainerState>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_termination_state: Option<ContainerState>,
+    #[serde(default)]
+    pub state: ContainerState,
+    #[serde(default)]
+    pub last_termination_state: ContainerState,
     pub ready: bool,
     pub restart_count: i32,
     pub image: String,
@@ -87,7 +90,7 @@ pub struct ContainerStatus {
 
 // TODO: this could be represented way more effectively with an enum
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ContainerState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub waiting: Option<ContainerStateWaiting>,
