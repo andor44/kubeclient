@@ -11,8 +11,7 @@ use serde::Serialize;
 ///! To match the behavior the best go's `string` is mapped to `String` and `*string` to
 ///! `Option<String>`.
 ///! Other types will be treated on a case-by-case basis as described here:
-///! * Uuid - represented as Option<Uuid> because only the API server generated these, we're not
-///! supposed to supply them, and using `Default` would result in a zeroed-out UUID.
+///! * Uuid - Will be treated regularly, should be compared with `Uuid::is_nil`
 
 macro_rules! kube_kind {
     ( $typ:ty, $list_name:ident, $name: expr ) => {
@@ -35,10 +34,11 @@ macro_rules! kube_kind {
 }
 
 pub mod admission;
+pub mod apps;
 pub mod authentication;
+pub mod batch;
 pub mod core;
 pub mod rbac;
-pub mod apps;
 
 
 /// Trait used to represent types used in the Kubernetes API

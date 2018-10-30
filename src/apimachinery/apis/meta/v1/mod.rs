@@ -18,12 +18,20 @@ pub struct ObjectMeta {
     pub namespace: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub self_link: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub uid: Option<Uuid>,
+    #[serde(default, skip_serializing_if = "Uuid::is_nil")]
+    pub uid: Uuid,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub resource_version: String,
     #[serde(default, skip_serializing_if = "i64::is_zero")]
     pub generation: i64,
+    // XXX: This *should not* be Option but I haven't been able to think of a way
+    // to better represent this. It's a value field in the k8s API with `omitempty`.
+    // Truthfully, that means that it has a "zero value". Time is a wrapper for
+    // Go's official `time` type. The zero value of that is documented here:
+    // https://golang.org/pkg/time/#Time
+    // That's apparently Year 1, January 1, 00:00:00.0 UTC
+    // We could make a fixed function and skip serialization on that, but the sheer
+    // stupidity of a "zero value" for time makes my brain hurt.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub creation_timestamp: Option<Time>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -34,8 +42,41 @@ pub struct ObjectMeta {
     pub labels: HashMap<String, String>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub annotations: HashMap<String, String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub owner_references: Vec<OwnerReference>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initializers: Option<Initializers>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub finalizers: Vec<String>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub cluster_name: String,
+}
 
-    // TODO: OwnerReferences, Initialziers, Finalizers, ClusterName
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Initializers {
+    pub pending: Vec<Initializer>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub result: Option<Status>,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Initializer {
+    pub name: String,
+}
+
+#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OwnerReference {
+    pub api_version: String,
+    pub kind: String,
+    pub name: String,
+    pub uid: Uuid,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub controller: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_owner_deletion: Option<bool>,
 }
 
 #[serde(rename_all = "camelCase")]
