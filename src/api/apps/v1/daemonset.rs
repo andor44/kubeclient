@@ -10,19 +10,23 @@ use super::{API_GROUP, API_VERSION};
 pub struct DaemonSet {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
+    #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
     pub spec: DaemonSetSpec,
+    #[serde(default)]
     pub status: DaemonSetStatus,
 }
 
 kube_kind!(DaemonSet, DaemonSetList, "daemonsets");
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DaemonSetSpec {
     #[serde(default)]
     pub selector: Option<meta::v1::LabelSelector>,
     pub template: api::core::v1::PodTemplateSpec,
+    #[serde(default)]
     pub update_strategy: DaemonSetUpdateStrategy,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub min_ready_seconds: i32,
@@ -33,7 +37,7 @@ pub struct DaemonSetSpec {
 pub type DaemonSetUpdateStrategyType = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DaemonSetUpdateStrategy {
     #[serde(rename = "type", default, skip_serializing_if = "String::is_empty")]
     pub strategy_type: DaemonSetUpdateStrategyType,
@@ -49,7 +53,7 @@ pub struct RollingUpdateDaemonSet {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DaemonSetStatus {
     pub current_number_scheduled: i32,
     pub number_misscheduled: i32,

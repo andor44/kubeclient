@@ -9,8 +9,11 @@ use super::{API_GROUP, API_VERSION};
 pub struct StatefulSet {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
+    #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
     pub spec: StatefulSetSpec,
+    #[serde(default)]
     pub status: StatefulSetStatus,
 }
 
@@ -19,11 +22,10 @@ kube_kind!(StatefulSet, StatefulSetList, "statefulsets");
 pub type PodManagementPolicyType = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct StatefulSetSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicas: Option<i32>,
-    #[serde(default)]
     pub selector: Option<meta::v1::LabelSelector>,
     pub template: api::core::v1::PodTemplateSpec,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -65,7 +67,7 @@ pub struct RollingUpdateStatefulSetStrategy {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct StatefulSetStatus {
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub observed_generation: i64,

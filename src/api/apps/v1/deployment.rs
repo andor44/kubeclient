@@ -10,21 +10,24 @@ use super::{API_GROUP, API_VERSION};
 pub struct Deployment {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
+    #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
     pub spec: DeploymentSpec,
+    #[serde(default)]
     pub status: DeploymentStatus,
 }
 
 kube_kind!(Deployment, DeploymentList, "deployments");
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DeploymentSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicas: Option<i32>,
-    #[serde(default)]
     pub selector: Option<meta::v1::LabelSelector>,
     pub template: api::core::v1::PodTemplateSpec,
+    #[serde(default)]
     pub strategy: DeploymentStrategy,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub min_ready_seconds: i32,
@@ -39,7 +42,7 @@ pub struct DeploymentSpec {
 pub type DeploymentStrategyType = String;
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DeploymentStrategy {
     #[serde(rename = "type", default, skip_serializing_if = "String::is_empty")]
     pub strategy_type: DeploymentStrategyType,
@@ -57,7 +60,7 @@ pub struct RollingUpdateDeployment {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct DeploymentStatus {
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub observed_generation: i64,

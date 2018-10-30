@@ -9,27 +9,30 @@ use super::{API_GROUP, API_VERSION};
 pub struct ReplicaSet {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
+    #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
+    #[serde(default)]
     pub spec: ReplicaSetSpec,
+    #[serde(default)]
     pub status: ReplicaSetStatus,
 }
 
 kube_kind!(ReplicaSet, ReplicaSetList, "replicasets");
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ReplicaSetSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicas: Option<i32>,
-    #[serde(default)]
     pub selector: Option<meta::v1::LabelSelector>,
+    #[serde(default)]
     pub template: api::core::v1::PodTemplateSpec,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
     pub min_ready_seconds: i32,
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ReplicaSetStatus {
     pub replicas: i32,
     #[serde(default, skip_serializing_if = "Zero::is_zero")]
