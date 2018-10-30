@@ -144,6 +144,7 @@ pub struct PodSpec {
     pub containers: Vec<Container>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub restart_policy: RestartPolicy,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub termination_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_deadline_seconds: Option<i64>,
@@ -709,7 +710,7 @@ pub struct PodDnsConfigOption {
 }
 
 #[serde(rename_all = "camelCase")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct PodTemplateSpec {
     #[serde(default)]
     pub metadata: meta::v1::ObjectMeta,
