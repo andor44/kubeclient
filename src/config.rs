@@ -1,6 +1,8 @@
-use reqwest::Certificate;
-use utils;
 use std::fmt;
+use base64;
+use reqwest::Certificate;
+
+use utils;
 
 #[derive(Debug)]
 pub enum ClientConfig {
@@ -19,6 +21,7 @@ pub enum KubeconfigParseError {
     MissingCluster(String),
     MissingFile(String),
     InvalidCertificate(String),
+    InvalidBase64,
 }
 
 impl ClientConfig {
@@ -41,15 +44,19 @@ impl ClientConfig {
                                 .find(|user| user.name == context.user)
                                 .ok_or_else(|| KubeconfigParseError::MissingUser(context.user.clone()))?.user;
         // If the cluster specified a CA cert retrieve that here
-        let ca = if let Some(ref _ca_data) = cluster.certificate_authority_data {
+        let ca = if let Some(ref ca_data) = cluster.certificate_authority_data {
             // CA specified inline as base64 PEM
-            unimplemented!("Inline CA data not implemented yet");
+            let ca_pem = base64::decode(ca_data).map_err(|_| KubeconfigParseError::InvalidBase64)?;
+            Some(Certificate::from_pem(&ca_pem)
+                             .map_err(|_| KubeconfigParseError::InvalidCertificate("Inline base64 CA".to_string()))?)
         } else if let Some(ca_path) = cluster.certificate_authority.as_ref() {
             // Path given to a certificate file
             let ca_pem = utils::read_file(ca_path).map_err(|_| KubeconfigParseError::MissingFile(ca_path.clone()))?;
             Some(Certificate::from_pem(&ca_pem)
                              .map_err(|_| KubeconfigParseError::InvalidCertificate(ca_path.clone()))?)
-        } else { None };
+        } else {
+            None
+        };
         Ok(ClientConfig::External {
             api_url: cluster.server.clone(),
             auth_info: AuthConfig::from_kubeconfig_user(user),
