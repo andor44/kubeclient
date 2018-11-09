@@ -204,7 +204,7 @@ impl KubeClient {
         // TODO: add logic for different auth methods
         match self.auth_info {
             AuthConfig::Token(ref bearer) =>
-                request.header(AUTHORIZATION, format!("Bearer: {}", bearer.clone())),
+                request.header(AUTHORIZATION, format!("Bearer {}", bearer.clone())),
             _ => unimplemented!(),
         }
     }
