@@ -10,9 +10,11 @@ pub const API_VERSION: &str = "v1";
 
 mod pod;
 mod secret;
+mod node;
 
 pub use self::pod::*;
 pub use self::secret::*;
+pub use self::node::*;
 
 
 // Namespace
