@@ -1,12 +1,21 @@
 use std::{env, fmt};
 use std::error::Error as StdError;
-use serde_json;
-use reqwest;
 use std::io::Error as IoError;
+
+use serde_json;
+
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Error as JsonError;
-use reqwest::{Method, Certificate, Client, Result as HttpResult, Response, Error as HttpError};
+use reqwest::{
+    Method,
+    Certificate,
+    Client,
+    Result as HttpResult,
+    Response,
+    Error as HttpError,
+    RequestBuilder,
+};
 use reqwest::header::AUTHORIZATION;
 
 use utils;
@@ -146,8 +155,12 @@ impl KubeClient {
         self.post_object(&produce_path::<T>(None, None), resource)
     }
 
-    pub fn update_cluster_resource<T: KubeKind>(&self, name: &str, resource: &T) -> RequestResult<T> {
+    pub fn replace_cluster_resource<T: KubeKind>(&self, name: &str, resource: &T) -> RequestResult<T> {
         self.put_object(&produce_path::<T>(None, Some(name)), resource)
+    }
+
+    pub fn patch_cluster_resource<T: KubeKind>(&self, name: &str, resource: &T) -> RequestResult<T> {
+        self.patch_object(&produce_path::<T>(None, Some(name)), resource)
     }
 
     pub fn list_cluster_resource<T: KubeKind>(&self) -> RequestResult<T::List> {
@@ -167,8 +180,12 @@ impl KubeClient {
         self.post_object(&produce_path::<T>(Some(namespace), None), resource)
     }
 
-    pub fn update_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str, resource: &T) -> RequestResult<T> {
+    pub fn replace_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str, resource: &T) -> RequestResult<T> {
         self.put_object(&produce_path::<T>(Some(namespace), Some(name)), resource)
+    }
+
+    pub fn patch_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str, resource: &T) -> RequestResult<T> {
+        self.patch_object(&produce_path::<T>(Some(namespace), Some(name)), resource)
     }
 
     pub fn get_namespaced_resource<T: KubeKind>(&self, namespace: &str, name: &str) -> RequestResult<T> {
@@ -188,19 +205,23 @@ impl KubeClient {
         deserialize_api_response(self.request_path::<()>(Method::GET, path, None))
     }
 
-    pub fn post_object<T: KubeKind, U: KubeKind>(&self, path: &str, object: &T) -> RequestResult<U> {
+    pub fn post_object<T: Serialize, U: DeserializeOwned>(&self, path: &str, object: &T) -> RequestResult<U> {
         deserialize_api_response(self.request_path(Method::POST, path, Some(object)))
     }
 
-    pub fn put_object<T: KubeKind, U: KubeKind>(&self, path: &str, object: &T) -> RequestResult<U> {
+    pub fn put_object<T: Serialize, U: DeserializeOwned>(&self, path: &str, object: &T) -> RequestResult<U> {
         deserialize_api_response(self.request_path(Method::PUT, path, Some(object)))
     }
 
-    pub fn delete_object<T: KubeKind>(&self, path: &str) -> RequestResult<T> {
+    pub fn patch_object<T: Serialize, U: DeserializeOwned>(&self, path: &str, object: &T) -> RequestResult<U> {
+        deserialize_api_response(self.request_path(Method::PATCH, path, Some(object)))
+    }
+
+    pub fn delete_object<T: DeserializeOwned>(&self, path: &str) -> RequestResult<T> {
         deserialize_api_response(self.request_path::<()>(Method::DELETE, path, None))
     }
 
-    fn authorize_request(&self, request: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+    fn authorize_request(&self, request: RequestBuilder) -> RequestBuilder {
         // TODO: add logic for different auth methods
         match self.auth_info {
             AuthConfig::Token(ref bearer) =>
