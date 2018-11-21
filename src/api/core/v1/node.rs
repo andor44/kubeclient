@@ -6,7 +6,7 @@ use apimachinery::api::resource::ResourceList;
 use super::{API_GROUP, API_VERSION, ConditionStatus};
 
 #[serde(rename_all = "camelCase")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Node {
     #[serde(flatten)]
     pub type_meta: meta::v1::TypeMeta,
