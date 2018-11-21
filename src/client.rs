@@ -3,7 +3,6 @@ use std::error::Error as StdError;
 use std::io::Error as IoError;
 
 use serde_json;
-
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Error as JsonError;
@@ -16,7 +15,7 @@ use reqwest::{
     Error as HttpError,
     RequestBuilder,
 };
-use reqwest::header::AUTHORIZATION;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 
 use utils;
 use api::KubeKind;
@@ -232,9 +231,14 @@ impl KubeClient {
 
     fn request_path<T: Serialize>(&self, method: Method, path: &str, body: Option<&T>) -> HttpResult<Response> {
         let uri = format!("{}{}", self.api_url, path);
+        let is_patching = method == Method::PATCH;
         let mut request = self.authorize_request(self.client.request(method, &uri));
         if let Some(body) = body {
             request = request.json(body);
+        }
+        // TODO: this is very heavy handed, there's probably a more flexible way to do this
+        if is_patching {
+            request = request.header(CONTENT_TYPE, "application/strategic-merge-patch+json");
         }
         request.send()
     }
