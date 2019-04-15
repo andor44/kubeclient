@@ -1,8 +1,8 @@
 use uuid::Uuid;
 use num_traits::Zero;
 
-use apimachinery::apis::meta;
-use apimachinery::api::resource::ResourceList;
+use crate::apimachinery::apis::meta;
+use crate::apimachinery::api::resource::ResourceList;
 use super::{API_GROUP, API_VERSION, ConditionStatus};
 
 #[serde(rename_all = "camelCase")]

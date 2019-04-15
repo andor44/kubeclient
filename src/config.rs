@@ -2,7 +2,7 @@ use std::fmt;
 use base64;
 use reqwest::Certificate;
 
-use utils;
+use crate::utils;
 
 #[derive(Debug)]
 pub enum ClientConfig {

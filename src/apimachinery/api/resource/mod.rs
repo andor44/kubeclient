@@ -1,5 +1,5 @@
 use std::collections::HashMap;
 
-use apimachinery::util::IntOrString;
+use crate::apimachinery::util::IntOrString;
 
 pub type ResourceList = HashMap<String, IntOrString>;

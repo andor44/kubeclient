@@ -25,5 +25,5 @@ pub mod api;
 pub mod apimachinery;
 pub mod config;
 
-pub use client::{RequestResult, RequestError, KubeClient};
-pub use config::{ClientConfig, AuthConfig};
+pub use crate::client::{RequestResult, RequestError, KubeClient};
+pub use crate::config::{ClientConfig, AuthConfig};

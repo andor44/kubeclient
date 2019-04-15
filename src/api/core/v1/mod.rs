@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use apimachinery::api::resource::ResourceList;
-use apimachinery::apis::meta;
+use crate::apimachinery::api::resource::ResourceList;
+use crate::apimachinery::apis::meta;
 
 // Core is special
 use super::API_GROUP;

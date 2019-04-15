@@ -15,7 +15,7 @@ use serde::Serialize;
 
 macro_rules! kube_kind {
     ( $typ:ty, $list_name:ident, $name: expr ) => {
-        impl ::api::KubeKind for $typ {
+        impl crate::api::KubeKind for $typ {
             const KIND_NAME: &'static str = $name;
             const API_GROUP: &'static str = API_GROUP;
             const API_VERSION: &'static str = API_VERSION;
@@ -26,9 +26,9 @@ macro_rules! kube_kind {
         #[derive(Debug, Serialize, Deserialize)]
         pub struct $list_name {
             #[serde(flatten)]
-            pub type_meta: meta::v1::TypeMeta,
+            pub type_meta: crate::apimachinery::apis::meta::v1::TypeMeta,
             pub items: Vec<$typ>,
-            pub metadata: ::apimachinery::apis::meta::v1::ListMeta,
+            pub metadata: crate::apimachinery::apis::meta::v1::ListMeta,
         }
     }
 }

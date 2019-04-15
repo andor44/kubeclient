@@ -1,7 +1,7 @@
 use num_traits::Zero;
 
-use api;
-use apimachinery::apis::meta;
+use crate::api;
+use crate::apimachinery::apis::meta;
 use super::{API_GROUP, API_VERSION};
 
 #[serde(rename_all = "camelCase")]

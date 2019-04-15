@@ -1,5 +1,5 @@
-use api;
-use apimachinery::apis::meta;
+use crate::api;
+use crate::apimachinery::apis::meta;
 
 use super::API_GROUP;
 pub const API_VERSION: &str = "v1beta1";

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use apimachinery::apis::meta;
-use apimachinery::api::resource;
-use apimachinery::util::IntOrString;
+use crate::apimachinery::apis::meta;
+use crate::apimachinery::api::resource;
+use crate::apimachinery::util::IntOrString;
 use super::{API_GROUP, API_VERSION};
 
 #[serde(rename_all = "camelCase")]

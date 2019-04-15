@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
-use apimachinery::apis::meta;
-use api;
+use crate::apimachinery::apis::meta;
+use crate::api;
 
 
 type Operation = String;

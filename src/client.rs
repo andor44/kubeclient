@@ -17,9 +17,9 @@ use reqwest::{
 };
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 
-use utils;
-use api::KubeKind;
-use config::{ClientConfig, AuthConfig};
+use crate::utils;
+use crate::api::KubeKind;
+use crate::config::{ClientConfig, AuthConfig};
 
 // the name and location for in-cluster runtime configuration parameters
 const INCLUSTER_CA_FILE: &str = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
