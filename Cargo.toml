@@ -2,6 +2,7 @@
 name = "kubeclient"
 version = "0.2.0"
 authors = ["Andor Uhlár <andor44@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 # http requests
